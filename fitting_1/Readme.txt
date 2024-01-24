@@ -1,0 +1,1 @@
+Extract the gamma by the intensity instead of by the width.
