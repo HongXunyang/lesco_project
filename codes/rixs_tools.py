@@ -134,6 +134,9 @@ class Energy_band():
         self._t2 = self.paras.t2
         self._t3 = self.paras.t3
         self._tz = self.paras.tz
+        self._c = self.paras.c 
+        self._chi_Delta = self.paras.chi_Delta
+        self._chi_Gamma = self.paras.chi_Gamma
         self._kx = np.linspace(-self.paras.knorm/2, self.paras.knorm/2, self.paras.num_rows)
         self._ky = np.linspace(-self.paras.knorm/2, self.paras.knorm/2, self.paras.num_rows)
         self._Kx, self._Ky = np.meshgrid(self._kx, self._ky)
@@ -168,6 +171,12 @@ class Energy_band():
     def ky(self): return self._ky
     @property
     def Ky(self): return self._Ky
+    @property
+    def chi_Delta(self): return self._chi_Delta
+    @property
+    def chi_Gamma(self): return self._chi_Gamma
+    @property
+    def c(self): return self._c
 
     @mu.setter
     def mu(self,value):
@@ -202,7 +211,6 @@ class Energy_band():
         self._RawEnergyBand = generate_1_band_model(self.paras) # raw energy band means energy band with mu = 0
         self._raw_energy_band = self._RawEnergyBand(self.Kx,self.Ky)
         self._energy_band = self._raw_energy_band - self._mu
-
     @num_rows.setter
     def num_rows(self,value):
         self._num_rows = value
@@ -213,7 +221,18 @@ class Energy_band():
         self._RawEnergyBand = generate_1_band_model(self.paras) # raw energy band means energy band with mu = 0
         self._raw_energy_band = self._RawEnergyBand(self.Kx,self.Ky)
         self._energy_band = self._raw_energy_band - self._mu
-
+    @chi_Delta.setter
+    def chi_Delta(self,value):
+        self._chi_Delta = value
+        self.paras.chi_Delta = value
+    @chi_Gamma.setter
+    def chi_Gamma(self,value):
+        self._chi_Gamma = value
+        self.paras.chi_Gamma = value
+    @c.setter
+    def c(self,value):
+        self._c = value
+        self.paras.c = value
 
 class System(Energy_band):
     def __init__(self, paras:Paras, num_itp:int) -> None:
@@ -300,11 +319,10 @@ class System(Energy_band):
         q_cdw = self.paras.q_cdw[0]
         Delta = self.paras.chi_Delta
         Gamma = self.paras.chi_Gamma
-        c = self.paras.c*self.paras.norm
+        c = self.paras.c
         normalization_factor = 1/2 * 1/np.sqrt(Delta**2 + c**2 * (q - q_cdw)**2)
         chi = 1/(Delta**2 + c**2 * (q - q_cdw)**2 - (omega + 1j*(Gamma))**2)
         return chi * normalization_factor
-   
     
     def nf(self, q:float, T = 0) -> np.array:
         """
@@ -447,6 +465,7 @@ def image(ax,X,Y,Z):
 
 
 #####################################
-# extra function
-
+# create system
+def create_system():
+    return System(paras, 1000)
 
