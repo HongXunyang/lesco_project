@@ -83,9 +83,37 @@ class RIXS_EXP():
 
     def to_dict(self):
         """
-        store all entries to a dictionary
+        Converts the RIXS_Experiment object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the RIXS_Experiment object.
         """
-        return 0
+        data_dict = {}
+        data_dict['__name__'] = self.__name__
+        data_dict['__material__'] = self.__material__
+        data_dict['__edge__'] = self.__edge__
+        data_dict['__incident_energy__'] = self.__incident_energy__
+        data_dict['_temperature_list_K'] = self._temperature_list_K
+        data_dict['_temperature_list_meV'] = self._temperature_list_meV
+        data_dict['_temperature_list_string'] = self._temperature_list_string
+        data_dict['_q_list'] = self._q_list
+        data_dict['_q_size'] = self._q_size
+        data_dict['_temperature_size'] = self._temperature_size
+        data_dict['_resolution'] = self._resolution
+        data_dict['_fG_preset'] = self._fG_preset
+        data_dict['_fL_preset'] = self._fL_preset
+        data_dict['_Raw_data'] = self._Raw_data
+        data_dict['_interesting_range_index'] = self._interesting_range_index
+        data_dict['_interesting_range'] = self._interesting_range
+        data_dict['_Interesting_raw_data'] = self._Interesting_raw_data
+        data_dict['Aligned_interesting_data'] = self.Aligned_interesting_data
+        data_dict['Fit_results'] = self.Fit_results
+        data_dict['Subtracted_realigned_interesting_data'] = self.Subtracted_realigned_interesting_data
+        data_dict['Interpolated_subtracted_realigned_interesting_data'] = self.Interpolated_subtracted_realigned_interesting_data
+        data_dict['Pure_CDF_data'] = self.Pure_CDF_data
+        data_dict['Phonon_simulation'] = self.Phonon_simulation
+        
+        return data_dict
 
 
     def info(self):

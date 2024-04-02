@@ -2,6 +2,8 @@ import scipy as sp
 import numpy as np
 from scipy.signal import convolve
 import MyFunctions as mf
+from rixs_experiment import RIXS_EXP
+_temp_exp = RIXS_EXP()
 
 def fl(x,x0,A,k):
     # lorentzian curve
@@ -204,10 +206,45 @@ def convoluted_fun(x, res, fun, *parameters):
     max_convoluted_value = max(convoluted_values)
     return convoluted_values/max_convoluted_value*max_value
 
-def fun_chi(x,A,Gamma,Delta):
-        normalization_factor = 1/2 * 1/np.sqrt(Delta**2)
-        chi = 1/(Delta**2 - (x + 1j*(Gamma))**2)
-        return np.imag(chi * normalization_factor)*1000*A
 
-def fun_S(x,A,Gamma,Delta,T):
-    return 2/(1-np.exp(-x/T))*fun_chi(x,Gamma,Delta)
+def fun_chi(x,y,c,A,Gamma,Delta):   
+        q_cdf = 0.24
+        #normalization_factor = 1/2 * 1/np.sqrt(c**2*(x-q_cdf)**2+Delta**2) # do I need this?????????????
+        normalization_factor = 1
+        chi = 1/(Delta**2 + c**2*(x-q_cdf)**2- (y + 1j*(Gamma))**2)
+        output = np.imag(chi * normalization_factor)
+        return output/max(output)*A
+
+def fun_S(x,y,c,A,Gamma,Delta,T):
+    out = 2/(1-np.exp(-y/T))*fun_chi(x,y,c,A,Gamma,Delta)
+    return out/max(out) * A
+
+def fun_S_convoluted(x, y, c, A, Gamma, Delta, T):
+    """
+    Calculate the convoluted function of S(x, y) with a Gaussian resolution function.
+
+    Parameters:
+    x (float): Momentum (r.l.u.)
+    y (array-like): Energy loss (meV)
+    c (float): Slope of the dispersion
+    A (float): Amplitude
+    Gamma (float): Damping (meV)
+    Delta (float): Energy gap (meV)
+    T (float): Temperature in meV
+
+    Returns:
+    array-like: The convoluted function of S(x, y) with a Gaussian resolution function, normalized to the maximum value.
+
+    """
+    y_left = min(y)
+    y_right = max(y)
+    y_left_shifted = y_left - (y_right + y_left) / 2
+    y_right_shifted = y_right - (y_right + y_left) / 2
+    y_gaussian = np.linspace(y_left_shifted, y_right_shifted, len(y))
+    res = _temp_exp._resolution
+    z = fun_S(x, y, c, A, Gamma, Delta, T)
+    z_conv = convolve(z, mf.fun_gaussian(y_gaussian, 0, 1, res), mode='same')
+    return z_conv / max(z_conv) * A
+
+
+
