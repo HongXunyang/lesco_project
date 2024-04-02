@@ -2,6 +2,8 @@
 import numpy as np
 from scipy.optimize import curve_fit
 
+
+
 class RIXS_EXP():
     def __init__(self):
         self.__name__ = 'rixs_experiment'
@@ -20,7 +22,8 @@ class RIXS_EXP():
         self._Raw_data = dict(  T21K = np.genfromtxt(('./simulation_data/'+'21K'+'.csv'), delimiter=','),
                                 T62K = np.genfromtxt(('./simulation_data/'+'62K'+'.csv'), delimiter=','),
                                 T104K = np.genfromtxt(('./simulation_data/'+'104K'+'.csv'), delimiter=','),
-                                T155K = np.genfromtxt(('./simulation_data/'+'155K'+'.csv'), delimiter=','))
+                                T155K = np.genfromtxt(('./simulation_data/'+'155K'+'.csv'), delimiter=','),\
+                                    info="")
         self._Raw_data['T21K'] = self._Raw_data['T21K'][0:1195:,:]
         self._Raw_data['T62K'] = self._Raw_data['T62K'][0:1195:,:]
         self._Raw_data['T104K'] = self._Raw_data['T104K'][0:1195:,:]
@@ -31,27 +34,33 @@ class RIXS_EXP():
             T21K = self._Raw_data['T21K'][self._interesting_range_index[0]:self._interesting_range_index[1],:], 
             T62K = self._Raw_data['T62K'][self._interesting_range_index[0]:self._interesting_range_index[1],:], 
             T104K = self._Raw_data['T104K'][self._interesting_range_index[0]:self._interesting_range_index[1],:], 
-            T155K = self._Raw_data['T155K'][self._interesting_range_index[0]:self._interesting_range_index[1],:])
+            T155K = self._Raw_data['T155K'][self._interesting_range_index[0]:self._interesting_range_index[1],:],\
+                 info="")
         
         self.Aligned_interesting_data = dict(T21K = np.copy((self._Interesting_raw_data['T21K'])),\
                                                 T62K = np.copy((self._Interesting_raw_data['T62K'])),\
                                                 T104K = np.copy((self._Interesting_raw_data['T104K'])),\
-                                                T155K = np.copy((self._Interesting_raw_data['T155K'])))
+                                                T155K = np.copy((self._Interesting_raw_data['T155K'])),\
+                                                info="")
 
                                             
         self.Fit_results = dict(fitting_info=[], T21K = dict(optimized_parameters=[[] for i in range(self._q_size)],errors=[[] for i in range(self._q_size)]),\
                                 T62K = dict(optimized_parameters=[[] for i in range(self._q_size)],errors=[[] for i in range(self._q_size)]),\
                                 T104K = dict(optimized_parameters=[[] for i in range(self._q_size)],errors=[[] for i in range(self._q_size)]),\
-                                T155K = dict(optimized_parameters=[[] for i in range(self._q_size)],errors=[[] for i in range(self._q_size)]))
+                                T155K = dict(optimized_parameters=[[] for i in range(self._q_size)],errors=[[] for i in range(self._q_size)]),\
+                                    info="")
         self.Subtracted_realigned_interesting_data = dict(T21K = np.zeros(np.shape(self._Interesting_raw_data['T21K'])),\
                                                 T62K = np.zeros(np.shape(self._Interesting_raw_data['T62K'])),\
                                                 T104K = np.zeros(np.shape(self._Interesting_raw_data['T104K'])),\
-                                                T155K = np.zeros(np.shape(self._Interesting_raw_data['T155K'])))
+                                                T155K = np.zeros(np.shape(self._Interesting_raw_data['T155K'])),\
+                                                    info="")
         self.Interpolated_subtracted_realigned_interesting_data = dict(T21K = np.zeros(np.shape(self._Interesting_raw_data['T21K'])),\
                                                 T62K = np.zeros(np.shape(self._Interesting_raw_data['T62K'])),\
                                                 T104K = np.zeros(np.shape(self._Interesting_raw_data['T104K'])),\
-                                                T155K = np.zeros(np.shape(self._Interesting_raw_data['T155K'])))
-
+                                                T155K = np.zeros(np.shape(self._Interesting_raw_data['T155K'])),\
+                                                    info="")
+        self.Pure_CDF_data = dict(T21K = None, T62K = None, T104K = None, T155K = None, info="Subtracted spectrum showing only CDF data. all are mesh. Z_subtracted are spectrum subtracted by elastic, a1g,b1g,breathing phonons. Z_extra_subtracted are additionally subtracted by the first column (lowest q) of the spectrum (presumingly acoustic phonon)")
+        self.Phonon_simulation = dict(T21K = None, T62K = None, T104K = None, T155K = None, info="Simulation data of . All are mesh. Phonons are convoluted by a gaussian (FWHM = resolution)")
 
     @property
     def Raw_data(self):
@@ -72,6 +81,11 @@ class RIXS_EXP():
     def Interesting_raw_data(self):
         return self._Interesting_raw_data
 
+    def to_dict(self):
+        """
+        store all entries to a dictionary
+        """
+        return 0
 
 
     def info(self):
@@ -170,5 +184,4 @@ class RIXS_EXP():
                 ax.plot(energy, intensity, label = label, color = color)
             else:
                 ax.fill_between(energy, intensity, alpha=0.8, label = label, color = color, edgecolor = 'none')
-
 
