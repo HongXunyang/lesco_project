@@ -1,7 +1,6 @@
 import scipy as sp
 import numpy as np
 from scipy.signal import convolve
-import MyFunctions as mf
 from rixs_experiment import RIXS_EXP
 _temp_exp = RIXS_EXP()
 
@@ -195,7 +194,7 @@ def convoluted_fun(x, res, fun, *parameters):
     x_left_shifted = x_left - (x_right + x_left)/2
     x_right_shifted = x_right - (x_right + x_left)/2
     x_gaussian = np.linspace(x_left_shifted, x_right_shifted, len(x))
-    gaussian_curve = mf.fun_gaussian(x_gaussian, 0, 1, res)
+    gaussian_curve = fun_gaussian(x_gaussian, 0, 1, res)
     
     # Calculate fun_s for a range of x values
     fun_values = fun(x, *parameters)
@@ -207,19 +206,22 @@ def convoluted_fun(x, res, fun, *parameters):
     return convoluted_values/max_convoluted_value*max_value
 
 
-def fun_chi(x,y,c,A,Gamma,Delta):   
+
+def fun_chi(y,q,c,A,Gamma,Delta):   
         q_cdf = 0.24
         #normalization_factor = 1/2 * 1/np.sqrt(c**2*(x-q_cdf)**2+Delta**2) # do I need this?????????????
         normalization_factor = 1
-        chi = 1/(Delta**2 + c**2*(x-q_cdf)**2- (y + 1j*(Gamma))**2)
+        chi = 1/(Delta**2 + c**2*(q-q_cdf)**2- (y + 1j*(Gamma))**2)
         output = np.imag(chi * normalization_factor)
-        return output/max(output)*A
+        return output/np.max(output)*A
 
-def fun_S(x,y,c,A,Gamma,Delta,T):
-    out = 2/(1-np.exp(-y/T))*fun_chi(x,y,c,A,Gamma,Delta)
+
+
+def fun_S_old(y,q,c,A,Gamma,Delta,T):
+    out = 2/(1-np.exp(-y/T))*fun_chi(y,q,c,A,Gamma,Delta)
     return out/max(out) * A
 
-def fun_S_convoluted(x, y, c, A, Gamma, Delta, T):
+def fun_S_convoluted_old(y, q, c, A, Gamma, Delta, T):
     """
     Calculate the convoluted function of S(x, y) with a Gaussian resolution function.
 
@@ -242,9 +244,44 @@ def fun_S_convoluted(x, y, c, A, Gamma, Delta, T):
     y_right_shifted = y_right - (y_right + y_left) / 2
     y_gaussian = np.linspace(y_left_shifted, y_right_shifted, len(y))
     res = _temp_exp._resolution
-    z = fun_S(x, y, c, A, Gamma, Delta, T)
-    z_conv = convolve(z, mf.fun_gaussian(y_gaussian, 0, 1, res), mode='same')
+    z = fun_S_old(y,q,c, A, Gamma, Delta, T)
+    z_conv = convolve(z, fun_gaussian(y_gaussian, 0, 1, res), mode='same')
     return z_conv / max(z_conv) * A
 
 
+def fun_S_new(y,q,c,A,Gamma,Delta,T):
+    temp = fun_chi(y,q,c,A,Gamma,Delta)*(n(y,T)+1)
+    # if temp[y<0] is not empty
+    if temp[y<0].size !=0:
+        temp[y<0] = np.exp(y[y<0]/T)*fun_chi(-y[y<0],q,c,A,Gamma,Delta)
+    return temp/max(temp) * A
 
+def n(y,T):
+    return 1/(np.exp(y/T)-1)
+
+def fun_S_convoluted_new(y, q, c, A, Gamma, Delta, T):
+    """
+    Calculate the convoluted function of S(x, y) with a Gaussian resolution function.
+
+    Parameters:
+    x (float): Momentum (r.l.u.)
+    y (array-like): Energy loss (meV)
+    c (float): Slope of the dispersion
+    A (float): Amplitude
+    Gamma (float): Damping (meV)
+    Delta (float): Energy gap (meV)
+    T (float): Temperature in meV
+
+    Returns:
+    array-like: The convoluted function of S(x, y) with a Gaussian resolution function, normalized to the maximum value.
+
+    """
+    y_left = np.min(y)
+    y_right = np.max(y)
+    y_left_shifted = y_left - (y_right + y_left) / 2
+    y_right_shifted = y_right - (y_right + y_left) / 2
+    y_gaussian = np.linspace(y_left_shifted, y_right_shifted, len(y))
+    res = _temp_exp._resolution
+    z = fun_S_new(y, q,c, A, Gamma, Delta, T)
+    z_conv = convolve(z, fun_gaussian(y_gaussian, 0, 1, res), mode='same')
+    return z_conv / max(z_conv) * A
